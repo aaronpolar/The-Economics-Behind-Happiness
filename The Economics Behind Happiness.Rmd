@@ -40,7 +40,6 @@ working_df$Regional.indicator[which(working_df$Country.name%in% c("Canada", "Cos
                                    
 working_df$Regional.indicator[which(working_df$Country.name%in% c("Chile", "Brazil", "Argentina", "Uruguay","Colombia", "Ecuador", "Bolivia", "Peru","Paraguay", "Venezuela"))] <- "South America"
                   
-
 working_df
 ```
 I wanted to explore the age old question *“How to be happy?”* and *"Does money buy happiness?"* by using my background in Economics and RStudio to analyze quantitative data from Kaggle.\
@@ -69,19 +68,14 @@ within businesses or not?”; Average of a Binary response: 0=No, 1=Yes
 ### Part 1
 ```{r}
 means <- aggregate(Ladder.score ~  Regional.indicator, working_df, mean)
-ggplot(working_df,
-              aes(x=Regional.indicator,
-                  y=Ladder.score,
-                  color=Regional.indicator)) +
+ggplot(working_df,aes(x=Regional.indicator, y=Ladder.score,color=Regional.indicator)) +
   geom_boxplot()+
   stat_summary(fun = mean, geom = "point", col = "black") +
-  stat_summary(fun = mean, geom = "text", col = "black",
-               vjust = 1.5, aes(label = paste(round(..y.., digits = 2)))) +
+  stat_summary(fun = mean, geom = "text", col = "black", vjust = 1.5, aes(label = paste(round(..y.., digits = 2)))) +
   xlab("Continent") +
   ylab("Happiness (ladder score)")+
   ggtitle("Happiness Level of Each Continent") +
   guides(col=guide_legend("Continents"))
-
 ```
 ```
 As shown above, you can see that Australia is the continent that has the highest happiness levels. 
@@ -168,7 +162,6 @@ scatter_healthy_happy
 regression_hh<- lm(Ladder.score ~ Healthy.life.expectancy,
                data = working_df)
 summary(regression_hh)
-
 ```
 
 ```{r}
@@ -247,7 +240,6 @@ gg.lm <- ggplot(Pred_Actual_lm, aes(Actual, Prediction )) +
        y = "Predicted happiness score")
 gg.lm
 ```
-
 
 ### Conclusion 
 Based on the explanatory variables given in the data set, the best indicator for happiness is GDP per capita with an R²=0.6237. However, 0.6237 is still quite far from a perfectly correlated R² value of 1 this makes me wonder if there are there better happiness indicators to explore such as job security, parks per square mile, number of pets per household.\
