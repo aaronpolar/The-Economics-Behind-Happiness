@@ -1,7 +1,7 @@
 ---
 title: "The Economics Behind Happiness-Final Project BSDS100-01"
 author: "Aaron Polar"
-date: "December 7, 2021"
+date: "December 14, 2021"
 output: html_document
 ---
 ```{r setup, include=FALSE}
@@ -10,7 +10,7 @@ library(ggplot2)
 library(dplyr)
 ```
 Preface: The packages used in this data exploration project are ggplot2 and dplyr.
- 
+
 ### Introduction
 For this project, I needed to manipulate the data in order to clean up the data set.\ I compiled the data into one data frame and remove irrelevant variables:   
 -Standard error of ladder score  
