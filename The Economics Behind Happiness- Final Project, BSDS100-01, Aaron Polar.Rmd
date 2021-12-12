@@ -1,0 +1,258 @@
+---
+title: "The Economics Behind Happiness-Final Project BSDS100-01"
+author: "Aaron Polar"
+date: "December 7, 2021"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(dplyr)
+```
+Preface: The packages used in this data exploration project are ggplot2 and dplyr.
+ 
+### Introduction
+For this project, I needed to manipulate the data in order to clean up the data set.\ I compiled the data into one data frame and remove irrelevant variables:   
+-Standard error of ladder score  
+-upperwhisker  
+-lowerwhisker  
+-Ladder score in Dystopia  
+-Explained by: Log GDP per capita  
+-Explained by: Social support  
+-Explained by: Healthy life expectancy  
+-Explained by: Freedom to make life choices  
+-Explained by: Generosity  
+-Explained by: Perceptions of corruption  
+-Dystopia + residual
+```{r, include=FALSE}
+df<- read.csv("world-happiness-report-2021.csv")
+working_df<- df[-c(4,5,6,13:20)]
+
+working_df$Regional.indicator[which(working_df$Regional.indicator %in% c("Sub-Saharan Africa", "Middle East and North Africa"))] <- "Africa"
+
+working_df$Regional.indicator[which(working_df$Regional.indicator %in% c("Asia", "South Asia", "Southeast Asia", "East Asia" ))] <- "Asia"
+
+working_df$Regional.indicator[which(working_df$Country.name %in% c("New Zealand", "Australia"))] <- "Australia"
+
+working_df$Regional.indicator[which(working_df$Regional.indicator %in% c("Central and Eastern Europe", "Commonwealth of Independent States", "Western Europe"))] <- "Europe"
+
+working_df$Regional.indicator[which(working_df$Country.name%in% c("Canada", "Costa Rica", "United States", "Mexico","Panama","Trinidad and Tobago", "El Salvador", "Belize", "Guatemala","Jamaica", "Nicaragua", "Dominican Republic", "Honduras","Haiti"))] <- "North America"
+                                   
+working_df$Regional.indicator[which(working_df$Country.name%in% c("Chile", "Brazil", "Argentina", "Uruguay","Colombia", "Ecuador", "Bolivia", "Peru","Paraguay", "Venezuela"))] <- "South America"
+                  
+
+working_df
+```
+I wanted to explore the age old question *“How to be happy?”* and *"Does money buy happiness?"* by using my background in Economics and RStudio to analyze quantitative data from Kaggle.\
+ \
+Using *World Happiness Report 2021* created by Ajaypal Singh, I was able to predict happiness levels based on freedom to make life decisions, and generosity based on happiness levels.\
+ \
+Finally, I analyzed each of the seven factors to determine which of them predicted happiness levels the best. 
+```
+The variables used in this data set are listed as follows: 
+Happiness: A ladder with steps numbered from 0 to 10 at the top. The top of the ladder (A score of 10) represents the best possible life for you and the bottom of the ladder represents the worst possible life for you. Surveyors were asked “On which step of the ladder would you say you personally feel you stand at this time?” 
+
+GDP Per Capita: Gross Domestic Product per individual in a country
+
+Social support: Surveyors were asked “Do you have someone to count on in times of trouble?”; Binary response: 0=No, 1=Yes
+
+Healthy Life expectancy: Healthy life expectancy at birth
+
+Freedom to make choices: Surveyors were asked “Are you satisfied or dissatisfied with your freedom to choose what you do with your life?”
+
+Generosity: Surveyors were asked “Have you donated money to a charity in the past month?”
+
+Perceptions of Corruption:  “Is corruption widespread throughout the government or not” and “Is corruption widespread 
+within businesses or not?”; Average of a Binary response: 0=No, 1=Yes
+``` 
+
+### Part 1
+```{r}
+means <- aggregate(Ladder.score ~  Regional.indicator, working_df, mean)
+ggplot(working_df,
+              aes(x=Regional.indicator,
+                  y=Ladder.score,
+                  color=Regional.indicator)) +
+  geom_boxplot()+
+  stat_summary(fun = mean, geom = "point", col = "black") +
+  stat_summary(fun = mean, geom = "text", col = "black",
+               vjust = 1.5, aes(label = paste(round(..y.., digits = 2)))) +
+  xlab("Continent") +
+  ylab("Happiness (ladder score)")+
+  ggtitle("Happiness Level of Each Continent") +
+  guides(col=guide_legend("Continents"))
+
+```
+```
+As shown above, you can see that Australia is the continent that has the highest happiness levels. 
+
+North America comes in third place, with an outlier that has a low happiness rate. This point represents the country of Haiti, which has been devastated with hurricanes throughout the decade- though more recently, stalled elections, rampant kidnappings and insecurity, and a 7.2 earthquake in August damaged Hatian morale.
+
+Two other countries join Haiti as an outlier; Venezuela and Afghanistan in South America and Asia respectively. Venezuela is currently facing an emergency humanitarian crisis with little to no access to safe water or healthcare centers. Venezuela has been plagued with hyperinflation due to corrupt and unstable government this past decade. 
+
+In more recent news, Afghanistan has been taken over by the Taliban. Afghanistan has been facing extreme corruption and an insecure government through mismanagement. Though Asia is the fifth ranking continent in happiness, Afghanistan has the lowest happiness levels in the world. 
+```
+
+### Are those who are free to make life decisions happier?
+```{r}
+colors<- c("Asia"= "red", "Europe" = "blue", "Africa"="green", "Australia"="orange", "North America"= "brown", "South America"= "yellow")
+
+ggplot(working_df, 
+       aes(x=Freedom.to.make.life.choices, 
+           y=Ladder.score, 
+           color=Regional.indicator)) + 
+  geom_point() + 
+  xlab("Freedom to make Life Choices") +
+  ylab("Happiness") +
+  ggtitle("Freedom to Make Life Choices vs. Happiness") +
+  guides(col=guide_legend("Continents")) + 
+  geom_smooth(method = "lm", se = FALSE)
+```
+``` 
+As shown above, the universial human right to have the liberty to make your own life choices is generally positively correlated to happiness. North America has the highest RSquared value just by looking at the graph. This indicates that in North America, the higher rating of freedom someone has to make choices, the higher your happiness score is predicted to be. 
+
+On the other hand, regions such as Africa, Asia, and South America have a much flatter regression line. This shows a weaker correlation between freedom to make life choices and happiness. Thinking critically about this outcome, I predict that culture plays a big part in this result. 
+``` 
+
+### Are those who are happier more generous? 
+```{r}
+colors<- c("Asia"= "red", "Europe" = "blue", "Africa"="green", "Australia"="orange", "North America"= "brown", "South America"= "yellow")
+
+ggplot(working_df, aes(x=Ladder.score, y=Generosity, color = Regional.indicator)) + 
+  geom_point() + 
+  xlab("Happiness") +
+  ylab("Generosity") +
+  ggtitle("Happiness vs. Generosity") +
+  guides(col=guide_legend("Continents")) + 
+  geom_smooth(method = "lm", se = FALSE)
+```
+```
+As shown above, those who are happier are not necessarily more generous. For instance, North Americans and Australians often donate less to charity as their happiness levels go up. On the other hand, Europeans often donate more to charity the happier they are. There are often rumors of famous celebrities who are stingy and are not generous. Some examples are of how celebrities are reported to tip less than the unspoken 20%. Additionally, many millionaires and billionaires try to keep their wealth by avoiding taxes. 
+```
+
+### What is the best indicator to living a happy life?
+```{r}
+ggplot(working_df, aes(x=Freedom.to.make.life.choices, y=Ladder.score)) + 
+  geom_point() + 
+  xlab("Freedom to Make Life Choices") +
+  ylab("Happiness") +
+  ggtitle("Freedom to Make Life Choices vs. Happiness")+ 
+  geom_smooth(method = "lm", se = FALSE)
+
+regression_hf<- lm(Freedom.to.make.life.choices ~ Ladder.score,
+               data = working_df)
+summary(regression_hf)
+```
+```{r}
+scatter_social_happy<- ggplot(working_df, aes(x=Social.support, y=Ladder.score)) + 
+  geom_point() + 
+  xlab("Social Support") +
+  ylab("Happiness (ladder score)") +
+  ggtitle("Social vs. Happiness")+ 
+  geom_smooth(method = "lm", se = FALSE)
+scatter_social_happy
+
+regression_hs<- lm(Ladder.score ~ Social.support,
+               data = working_df)
+summary(regression_hs)
+```
+```{r}
+scatter_healthy_happy<- ggplot(working_df, aes(x=Healthy.life.expectancy, y=Ladder.score)) + 
+  geom_point() + 
+  xlab("Healthy Life Expectancy") +
+  ylab("Happiness (ladder score)") +
+  ggtitle("Healthy Life Expectancy vs. Happiness")+ 
+  geom_smooth(method = "lm", se = FALSE)
+scatter_healthy_happy
+
+regression_hh<- lm(Ladder.score ~ Healthy.life.expectancy,
+               data = working_df)
+summary(regression_hh)
+
+```
+
+```{r}
+scatter_generosity_happy<- ggplot(working_df, aes(x=Generosity, y=Ladder.score)) + 
+  geom_point() + 
+  xlab("Generosity") +
+  ylab("Happiness (ladder score)") +
+  ggtitle("Generosity vs. Happiness")+ 
+  geom_smooth(method = "lm", se = FALSE)
+scatter_generosity_happy
+
+regression_hg<- lm(Ladder.score ~ Generosity,
+               data = working_df)
+summary(regression_hg)
+```
+
+```{r}
+scatter_perception_happy<- ggplot(working_df, aes(x=Perceptions.of.corruption, y=Ladder.score)) + 
+  geom_point() + 
+  xlab("Perceptions of Corruption") +
+  ylab("Happiness (ladder score)") +
+  ggtitle("Perceptions of Corruption vs. Happiness")+ 
+  geom_smooth(method = "lm", se = FALSE)
+scatter_perception_happy
+
+regression_hp<- lm(Ladder.score ~ Perceptions.of.corruption,
+               data = working_df)
+summary(regression_hp)
+```
+
+```{r}
+scatter_gdp_happy<- ggplot(working_df, aes(x=Logged.GDP.per.capita, y=Ladder.score)) + 
+  geom_point() + 
+  xlab("GDP per Capita (logged)") +
+  ylab("Happiness (ladder score)") +
+  ggtitle("GDP per Capita vs. Happiness")+ 
+  geom_smooth(method = "lm", se = FALSE)
+scatter_gdp_happy
+
+regression_hl<- lm(Ladder.score ~ Logged.GDP.per.capita,
+               data = working_df)
+summary(regression_hl)
+```
+```
+Based on the explanatory variables given in the data set, the best indicator for happiness is GDP per capita with an R²=0.6237.
+```
+
+### Are the explanitory variables significant?
+```{r}
+regression <- lm(Ladder.score ~ Logged.GDP.per.capita + Social.support + Healthy.life.expectancy + Freedom.to.make.life.choices + Generosity + Perceptions.of.corruption, data=working_df)
+summary(regression)
+```
+```
+Based on the data above, we can safely say that Social Support and Freedom to Make Life Choices are the top two most significant explanitory variables. GDP per capita is slightly significant, along with healthy life expectancy, and perceptions of corruption. Generosity falls under the "not significant" category. 
+```
+
+### Just for fun, how would I rank on the Happiness scale?
+#### In a new country called Aaronville with Logged.GDP.per.capita of 6.9078 (ln($1000)), Social.support of 1, Healthy.life.expectancy= 68.200 (taken from United States data), Generosity= 0, Perceptions.of.corruption=0.5)
+```{r}
+aaronville<- data.frame(Logged.GDP.per.capita=6.9078, Social.support = 1, Healthy.life.expectancy= 68.200, Freedom.to.make.life.choices=1, Generosity= 0, Perceptions.of.corruption=0.5)
+predict(regression, newdata=aaronville)
+```
+```
+Unsurprisingly, my happiness levels are quite low; marking a 5.94 on the happiness ladder scale. I believe this is due to the fact that I have a low GDP per capita rating. 
+```
+
+#### Multiple Linear Regression Model
+```{r}
+y_pred_lm = predict(regression, newdata = working_df)
+
+Pred_Actual_lm <- as.data.frame(cbind(Prediction = y_pred_lm, Actual = working_df$Ladder.score))
+
+gg.lm <- ggplot(Pred_Actual_lm, aes(Actual, Prediction )) +
+  geom_point() + theme_bw() + geom_abline() +
+  labs(title = "Multiple Linear Regression", x = "Actual happiness score",
+       y = "Predicted happiness score")
+gg.lm
+```
+
+
+### Conclusion 
+Based on the explanatory variables given in the data set, the best indicator for happiness is GDP per capita with an R²=0.6237. However, 0.6237 is still quite far from a perfectly correlated R² value of 1 this makes me wonder if there are there better happiness indicators to explore such as job security, parks per square mile, number of pets per household.\
+ \
+Some problems I faced during this project the significance levels of the explanatory variables. Additionally, I think some regions had more countries than others which skewed the box plot and regression due to a low sample size. Lastly, I could have split up the continent region indicator into more specific regions such as Western/Eastern Europe, North/Central/South America, Carribean, Sub Saharan/Central/South Africa, Middle East, East/South/Southeast Asia, Pacific Islands, and Oceania. By doing this, I'll be able to accurately determine the variance in different factors instead of blindly categorizing culturally and economically different countries together based on their location.\
+ \
+In a future project, I'd like to explore more factors that determine happiness levels in certain regions. Explanatory variables such as GDP per capita, annual income per household, government expenditure on education, government expenditure on healthcare, and import to export ratio in order to fully answer the age old question *"Does money buy happiness?"* 
+
